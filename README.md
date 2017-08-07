@@ -1,4 +1,4 @@
-# Skreenr
+# Skreen
 
 ## Dependencies
 
