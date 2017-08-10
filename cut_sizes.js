@@ -1,8 +1,8 @@
-const { Chromeless } = require('chromeless')
 const fs = require('fs')
 const sharp = require('sharp')
+const pathname = require('path')
 
-const SIZES= [
+const SIZES = [
   { width: 1280, height: 800 },
   { width: 960, height: 600 },
   { width: 640, height: 400 },
@@ -10,12 +10,13 @@ const SIZES= [
   { width: 320, height: 200 },
   { width: 240, height: 150 }
 ]
-const scale = (pipeline, width, height) => {
+
+const scale = ({ pipeline, path, width, height }) => {
   return new Promise((resolve, reject) => {
-    const path = `resized-${width}-${height}.png`
-    let writeStream = fs.createWriteStream(path)
+    const resizedPath = `resized-${width}-${height}-${pathname.basename(path)}`
+    let writeStream = fs.createWriteStream(resizedPath)
     writeStream.on('close', () => {
-      resolve(path)
+      resolve(resizedPath)
     })
     writeStream.on('error', error => {
       reject(error)
@@ -24,15 +25,31 @@ const scale = (pipeline, width, height) => {
   })
 }
 
-async function run() {
-  const chromeless = new Chromeless()
-  const screenshot = await chromeless.setViewport({ width: 2560, height: 1440, scale: 1 }).goto('http://www.corse-le-gr20.com/13/gr-20-sud').screenshot()
-  let pipeline = sharp(screenshot)
-  let promises = SIZES.map(size => {
-    return scale(pipeline, size.width, size.height)
+function list(path) {
+  return new Promise((resolve, reject) => {
+    fs.readdir(path, {encoding: 'utf-8'}, (error, paths) => {
+      if(error) {
+        reject(error)
+      } else {
+        resolve(paths)
+      }
+    })
   })
-  let results = await Promise.all(promises)
-  return results
 }
 
-run().then(console.log).catch(console.error)
+function cut(path) {
+  const basename = pathname.basename(path, '.png')
+  let pipeline = sharp(path)
+  let promises = SIZES.map(size => {
+    let params = Object.assign({ pipeline, path: path }, size)
+    return scale(params)
+  })
+  return Promise.all(promises)
+}
+
+list('./samples').then(paths => {
+  Promise.all(paths.map(path => {
+    return cut(`./samples/${path}`)
+  })).then(done => {
+  }).catch(console.error)
+}).catch(console.error)
