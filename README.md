@@ -21,6 +21,6 @@ This is of cours a ballpark estimate with a larger number of files resized at th
 ## TODO
 
 - [ ] Transform into Express application 
-- [x] See if more sizes can be cut concurrently
-- [x] See if more screenshots can be taken concurrently
+- [x] ~~See if more sizes can be cut concurrently~~
+- [x] ~~See if more screenshots can be taken concurrently~~
 - [ ] Deploy to GAE
